@@ -1,14 +1,22 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
   const [role, setRole] = useState('admin');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle login logic based on role
-    console.log(`Logging in as ${role}`, { username, password });
+    // Simple validation
+    if (username && password) {
+      if (role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/user');
+      }
+    }
   };
 
   return (
