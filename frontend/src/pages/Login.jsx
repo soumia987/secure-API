@@ -1,21 +1,34 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from './api';
 
 const Login = () => {
   const [role, setRole] = useState('admin');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Simple validation
-    if (username && password) {
+    setError('');
+    setIsLoading(true);
+
+    try {
+      const response = await api.post('/login', { username, password });
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      
       if (role === 'admin') {
         navigate('/admin');
       } else {
         navigate('/user');
       }
+    } catch (err) {
+      setError(err.response?.data?.error || 'Login failed');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -30,6 +43,12 @@ const Login = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-8">
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
+              {error}
+            </div>
+          )}
+
           {/* Role Selector */}
           <div className="flex bg-gray-200 rounded-full p-1 mb-6">
             <button
@@ -91,11 +110,12 @@ const Login = () => {
           {/* Login Button */}
           <button
             type="submit"
+            disabled={isLoading}
             className={`w-full py-3 px-4 rounded-lg text-white font-bold shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5 ${
               role === 'admin' ? 'bg-pink-600 hover:bg-pink-700' : 'bg-cyan-500 hover:bg-cyan-600'
-            }`}
+            } ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
-            Login as {role.charAt(0).toUpperCase() + role.slice(1)}
+            {isLoading ? 'Logging in...' : `Login as ${role.charAt(0).toUpperCase() + role.slice(1)}`}
           </button>
 
           {/* Forgot Password */}

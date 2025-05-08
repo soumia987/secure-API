@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from './api';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -9,6 +11,8 @@ const Register = () => {
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [apiError, setApiError] = useState('');
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -47,16 +51,25 @@ const Register = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setApiError('');
+    
     if (validate()) {
       setIsSubmitting(true);
-      // Simulate API call
-      setTimeout(() => {
-        console.log('Registration data:', formData);
+      
+      try {
+        const { confirmPassword, ...userData } = formData;
+        const response = await api.post('/register', userData);
+        
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        navigate('/');
+      } catch (err) {
+        setApiError(err.response?.data?.error || 'Registration failed');
+      } finally {
         setIsSubmitting(false);
-        alert('Registration successful!');
-      }, 1500);
+      }
     }
   };
 
@@ -71,6 +84,12 @@ const Register = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-8">
+          {apiError && (
+            <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
+              {apiError}
+            </div>
+          )}
+
           {/* Username Field */}
           <div className="mb-4">
             <label htmlFor="username" className="block text-gray-700 font-medium mb-2">
@@ -170,7 +189,7 @@ const Register = () => {
           <div className="text-center mt-6">
             <p className="text-gray-600">
               Already have an account?{' '}
-              <a href="#" className="text-blue-600 hover:text-blue-800 font-medium transition-colors">
+              <a href="/login" className="text-blue-600 hover:text-blue-800 font-medium transition-colors">
                 Sign in
               </a>
             </p>
