@@ -1,12 +1,26 @@
+// src/pages/AdminPage.jsx
+import { useContext } from 'react';
+import { AuthContext } from '../context/AuthContext';
+
 const AdminPage = () => {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-center p-8 bg-white rounded-xl shadow-lg">
+  const { user, logout } = useContext(AuthContext);
+
+  return (
+    <div className="min-h-screen bg-gray-100">
+      <div className="container mx-auto p-4">
+        <div className="bg-white rounded-xl shadow-lg p-6">
           <h1 className="text-3xl font-bold text-pink-600 mb-4">Admin Dashboard</h1>
-          <p className="text-gray-700 text-xl">Coming Soon</p>
+          <p className="text-gray-700 mb-4">Welcome, {user?.username}</p>
+          <button
+            onClick={logout}
+            className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg"
+          >
+            Logout
+          </button>
         </div>
       </div>
-    );
-  };
-  
-  export default AdminPage;
+    </div>
+  );
+};
+
+export default AdminPage;

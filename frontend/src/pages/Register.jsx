@@ -1,13 +1,14 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import api from './api';
+import { Link, useNavigate } from 'react-router-dom';
+import api from '../api';
 
 const Register = () => {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    role: 'user' // Default role
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -62,9 +63,12 @@ const Register = () => {
         const { confirmPassword, ...userData } = formData;
         const response = await api.post('/register', userData);
         
+        // Store authentication data
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
-        navigate('/');
+        
+        // Redirect based on role
+        navigate(response.data.user.role === 'admin' ? '/admin' : '/user');
       } catch (err) {
         setApiError(err.response?.data?.error || 'Registration failed');
       } finally {
@@ -89,6 +93,32 @@ const Register = () => {
               {apiError}
             </div>
           )}
+
+          {/* Role Selector */}
+          <div className="flex bg-gray-200 rounded-full p-1 mb-6">
+            <button
+              type="button"
+              onClick={() => setFormData({...formData, role: 'admin'})}
+              className={`flex-1 py-2 px-4 rounded-full font-medium transition-colors ${
+                formData.role === 'admin'
+                  ? 'bg-pink-600 text-white shadow-md'
+                  : 'hover:bg-gray-300'
+              }`}
+            >
+              Admin
+            </button>
+            <button
+              type="button"
+              onClick={() => setFormData({...formData, role: 'user'})}
+              className={`flex-1 py-2 px-4 rounded-full font-medium transition-colors ${
+                formData.role === 'user'
+                  ? 'bg-cyan-500 text-white shadow-md'
+                  : 'hover:bg-gray-300'
+              }`}
+            >
+              User
+            </button>
+          </div>
 
           {/* Username Field */}
           <div className="mb-4">
@@ -170,7 +200,9 @@ const Register = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed"
+            className={`w-full py-3 px-4 text-white font-bold rounded-lg shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed ${
+              formData.role === 'admin' ? 'bg-pink-600 hover:bg-pink-700' : 'bg-cyan-500 hover:bg-cyan-600'
+            }`}
           >
             {isSubmitting ? (
               <span className="flex items-center justify-center">
@@ -181,7 +213,7 @@ const Register = () => {
                 Processing...
               </span>
             ) : (
-              'Create Account'
+              `Register as ${formData.role.charAt(0).toUpperCase() + formData.role.slice(1)}`
             )}
           </button>
 
@@ -189,9 +221,9 @@ const Register = () => {
           <div className="text-center mt-6">
             <p className="text-gray-600">
               Already have an account?{' '}
-              <a href="/login" className="text-blue-600 hover:text-blue-800 font-medium transition-colors">
+              <Link to="/login" className="text-blue-600 hover:text-blue-800 font-medium transition-colors">
                 Sign in
-              </a>
+              </Link>
             </p>
           </div>
         </form>
